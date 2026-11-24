@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Style 3 Stickman Studio</title>
+  <title>Cool Suit Stickman</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -10,7 +10,7 @@
       text-align: center;
       padding: 20px;
     }
-    h1 { color: #333; margin-bottom: 10px; }
+    h1 { color: #222; margin-bottom: 10px; }
     canvas { 
       background: white; 
       border: 3px solid #333; 
@@ -21,37 +21,39 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      background: #4CAF50;
+      background: #2c3e50;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       margin: 5px;
     }
-    button:hover { background: #45a049; }
+    button:hover { background: #34495e; }
   </style>
 </head>
 <body>
-  <h1>✨ My Style 3 Stickman ✨</h1>
-  <canvas id="canvas" width="800" height="450"></canvas>
+  <h1>😎 Cool Suit Stickman</h1>
+  <canvas id="canvas" width="800" height="500"></canvas>
   
   <div class="controls">
-    <button onclick="startWalk()">🚶 Walk Animation</button>
+    <button onclick="startWalk()">🚶 Walk</button>
     <button onclick="stopAnimation()">⏹ Stop</button>
-    <button onclick="wave()">👋 Wave</button>
+    <button onclick="wave()">👋 Greeting</button>
+    <button onclick="thumbsUp()">👍 Thumbs Up</button>
   </div>
 
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     
-    let x = 100;
-    let y = 300;
+    let x = 150;
+    let y = 320;
     let frame = 0;
     let animating = false;
     let currentPose = 'standing';
 
-    function drawStickman(x, y, pose = 'standing', emotion = 'happy') {
+    // === COOL SUIT STICKMAN ===
+    function drawSuitMan(x, y, pose = 'standing') {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       let armSwing = 0;
@@ -59,97 +61,211 @@
       let bob = 0;
       
       if (pose === 'walking') {
-        armSwing = Math.sin(frame * 0.15) * 25;
-        legSwing = Math.sin(frame * 0.15) * 18;
-        bob = Math.abs(Math.sin(frame * 0.15)) * 4;
+        armSwing = Math.sin(frame * 0.15) * 22;
+        legSwing = Math.sin(frame * 0.15) * 16;
+        bob = Math.abs(Math.sin(frame * 0.15)) * 3;
       }
       if (pose === 'waving') {
-        armSwing = Math.sin(frame * 0.2) * 30 - 40;
+        armSwing = Math.sin(frame * 0.18) * 25 - 45;
       }
       
       const drawY = y - bob;
       
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = 3;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#222222';
       
+      // === HAIR ===
+      ctx.fillStyle = '#1a1a1a';
       ctx.beginPath();
-      ctx.arc(x, drawY - 75, 22, 0, Math.PI * 2);
-      ctx.fillStyle = '#FFE4C4';
+      ctx.moveTo(x - 28, drawY - 105);
+      ctx.lineTo(x - 18, drawY - 125);
+      ctx.lineTo(x - 5, drawY - 110);
+      ctx.lineTo(x + 5, drawY - 130);
+      ctx.lineTo(x + 15, drawY - 112);
+      ctx.lineTo(x + 25, drawY - 122);
+      ctx.lineTo(x + 30, drawY - 100);
+      ctx.closePath();
       ctx.fill();
+      
+      // === HEAD ===
+      ctx.fillStyle = '#f5f5f5';
+      ctx.beginPath();
+      ctx.ellipse(x, drawY - 90, 22, 26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
       ctx.stroke();
       
-      ctx.fillStyle = '#222222';
-      if (emotion === 'happy') {
-        ctx.beginPath();
-        ctx.arc(x - 8, drawY - 80, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x + 8, drawY - 80, 3, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (emotion === 'surprised') {
-        ctx.beginPath();
-        ctx.arc(x - 8, drawY - 80, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x + 8, drawY - 80, 5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (emotion === 'thinking') {
-        ctx.beginPath();
-        ctx.arc(x - 8, drawY - 80, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x + 10, drawY - 82, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
+      // === SUNGLASSES ===
+      ctx.fillStyle = '#111';
+      ctx.fillRect(x - 20, drawY - 98, 16, 8);
+      ctx.fillRect(x + 4, drawY - 98, 16, 8);
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      if (emotion === 'happy') {
-        ctx.arc(x, drawY - 68, 7, 0.1 * Math.PI, 0.9 * Math.PI);
-      } else if (emotion === 'surprised') {
-        ctx.arc(x, drawY - 65, 5, 0, Math.PI * 2);
-      } else if (emotion === 'thinking') {
-        ctx.moveTo(x - 5, drawY - 65);
-        ctx.lineTo(x + 5, drawY - 63);
-      }
+      ctx.moveTo(x - 4, drawY - 94);
+      ctx.lineTo(x + 4, drawY - 94);
       ctx.stroke();
       
+      // === MIC ===
+      ctx.fillStyle = '#333';
+      ctx.fillRect(x + 22, drawY - 82, 10, 3);
       ctx.beginPath();
-      ctx.moveTo(x, drawY - 53);
-      ctx.lineTo(x, drawY - 20);
+      ctx.arc(x + 35, drawY - 80, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // === NECK ===
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 6, drawY - 64);
+      ctx.lineTo(x - 6, drawY - 55);
+      ctx.moveTo(x + 6, drawY - 64);
+      ctx.lineTo(x + 6, drawY - 55);
       ctx.stroke();
       
+      // === SHIRT & TIE ===
+      ctx.fillStyle = '#f8f8f8';
       ctx.beginPath();
+      ctx.moveTo(x - 25, drawY - 55);
+      ctx.lineTo(x - 20, drawY - 10);
+      ctx.lineTo(x + 20, drawY - 10);
+      ctx.lineTo(x + 25, drawY - 55);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      
+      // Tie knot
+      ctx.fillStyle = '#555';
+      ctx.beginPath();
+      ctx.moveTo(x - 6, drawY - 55);
+      ctx.lineTo(x, drawY - 45);
+      ctx.lineTo(x + 6, drawY - 55);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Tie body
+      ctx.beginPath();
+      ctx.moveTo(x, drawY - 50);
+      ctx.lineTo(x - 7, drawY - 12);
+      ctx.lineTo(x + 7, drawY - 12);
+      ctx.closePath();
+      ctx.fill();
+      
+      // === BLAZER/JACKET ===
+      ctx.fillStyle = '#2c2c2c';
+      // Left side
+      ctx.beginPath();
+      ctx.moveTo(x - 30, drawY - 55);
+      ctx.lineTo(x - 40, drawY - 50);
+      ctx.lineTo(x - 35, drawY + 30);
+      ctx.lineTo(x - 22, drawY + 25);
+      ctx.lineTo(x - 25, drawY - 10);
+      ctx.closePath();
+      ctx.fill();
+      // Right side
+      ctx.beginPath();
+      ctx.moveTo(x + 30, drawY - 55);
+      ctx.lineTo(x + 40, drawY - 50);
+      ctx.lineTo(x + 35, drawY + 30);
+      ctx.lineTo(x + 22, drawY + 25);
+      ctx.lineTo(x + 25, drawY - 10);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Lapels
+      ctx.fillStyle = '#3a3a3a';
+      ctx.beginPath();
+      ctx.moveTo(x - 22, drawY - 55);
+      ctx.lineTo(x - 12, drawY - 35);
+      ctx.lineTo(x - 5, drawY - 55);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + 22, drawY - 55);
+      ctx.lineTo(x + 12, drawY - 35);
+      ctx.lineTo(x + 5, drawY - 55);
+      ctx.closePath();
+      ctx.fill();
+      
+      // === BELT ===
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(x - 22, drawY + 25, 44, 6);
+      ctx.fillStyle = '#444';
+      ctx.fillRect(x - 5, drawY + 24, 10, 8);
+      
+      // === PANTS ===
+      ctx.fillStyle = '#333';
+      ctx.fillRect(x - 20, drawY + 31, 17, 55);
+      ctx.fillRect(x + 3, drawY + 31, 17, 55);
+      
+      // === ARMS & HANDS ===
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#2c2c2c';
+      
       if (pose === 'waving') {
-        ctx.moveTo(x, drawY - 45);
-        ctx.lineTo(x - 18, drawY - 38);
-        ctx.moveTo(x, drawY - 45);
-        ctx.lineTo(x + 25, drawY - 50 + armSwing);
+        // Left arm relaxed
+        ctx.beginPath();
+        ctx.moveTo(x - 30, drawY - 30);
+        ctx.lineTo(x - 42, drawY + 5);
+        ctx.stroke();
+        // Right arm waving
+        ctx.beginPath();
+        ctx.moveTo(x + 30, drawY - 30);
+        ctx.lineTo(x + 45, drawY - 55 + armSwing);
+        ctx.stroke();
+      } else if (pose === 'thumbsUp') {
+        // Left arm relaxed
+        ctx.beginPath();
+        ctx.moveTo(x - 30, drawY - 30);
+        ctx.lineTo(x - 42, drawY + 5);
+        ctx.stroke();
+        // Right arm up
+        ctx.beginPath();
+        ctx.moveTo(x + 30, drawY - 30);
+        ctx.lineTo(x + 42, drawY - 25);
+        ctx.stroke();
       } else {
-        ctx.moveTo(x, drawY - 45);
-        ctx.lineTo(x - 22, drawY - 35 + armSwing);
-        ctx.moveTo(x, drawY - 45);
-        ctx.lineTo(x + 22, drawY - 35 - armSwing);
+        // Normal arms
+        ctx.beginPath();
+        ctx.moveTo(x - 30, drawY - 30);
+        ctx.lineTo(x - 42 + armSwing, drawY + 5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + 30, drawY - 30);
+        ctx.lineTo(x + 42 - armSwing, drawY + 5);
+        ctx.stroke();
       }
+      
+      // === LEGS ===
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(x - 12, drawY + 31);
+      ctx.lineTo(x - 15 + legSwing, drawY + 85);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + 12, drawY + 31);
+      ctx.lineTo(x + 15 - legSwing, drawY + 85);
       ctx.stroke();
       
-      ctx.beginPath();
-      ctx.moveTo(x, drawY - 20);
-      ctx.lineTo(x - 18 + legSwing, drawY + 15);
-      ctx.moveTo(x, drawY - 20);
-      ctx.lineTo(x + 18 - legSwing, drawY + 15);
-      ctx.stroke();
+      // === SHOES ===
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(x - 22 + legSwing, drawY + 82, 22, 8);
+      ctx.fillRect(x + 0 - legSwing, drawY + 82, 22, 8);
     }
 
     function animate() {
       if (!animating) return;
       frame++;
       if (currentPose === 'walking') {
-        x += 1.5;
+        x += 1.2;
         if (x > 850) x = -50;
       }
-      drawStickman(x, 300, currentPose);
+      drawSuitMan(x, 320, currentPose);
       requestAnimationFrame(animate);
     }
 
@@ -163,19 +279,24 @@
       animating = false;
       currentPose = 'standing';
       frame = 0;
-      drawStickman(100, 300, 'standing');
+      drawSuitMan(150, 320, 'standing');
     }
 
     function wave() {
       animating = true;
       currentPose = 'waving';
       animate();
-      setTimeout(() => {
-        stopAnimation();
-      }, 2000);
+      setTimeout(stopAnimation, 2500);
     }
 
-    drawStickman(100, 300, 'standing');
+    function thumbsUp() {
+      animating = true;
+      currentPose = 'thumbsUp';
+      animate();
+      setTimeout(stopAnimation, 2000);
+    }
+
+    drawSuitMan(150, 320, 'standing');
   </script>
 </body>
 </html>

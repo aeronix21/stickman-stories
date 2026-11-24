@@ -1,261 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Clean Cartoon Stick Figure</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      background: #f0f4f8; 
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 { color: #222; margin-bottom: 10px; }
-    canvas { 
-      background: white; 
-      border: 3px solid #333; 
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .controls { margin-top: 20px; }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #222;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 5px;
-      transition: 0.2s;
-    }
-    button:hover { background: #444; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stickman Studio</title>
+<style>
+:root{--paper:#f6f6f3;--ink:#1b1b1f;--ink2:#6b6b74;--line:#d9d9d2;--ui:#ffffff;--acc:#2f5bea;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#17181c;--ink:#f1f1ee;--ink2:#9a9aa5;--line:#34353c;--ui:#22232a;--acc:#7f9bff;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#17181c;--ink:#f1f1ee;--ink2:#9a9aa5;--line:#34353c;--ui:#22232a;--acc:#7f9bff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 14px}
+canvas{width:100%;max-width:1100px;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:1100px}
+button{font:inherit;font-weight:600;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--ui);color:var(--ink);cursor:pointer}
+button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+p{margin:0;color:var(--ink2);font-size:14px;text-align:center;max-width:60ch}
+</style>
 </head>
 <body>
-  <h1>✨ Clean Cartoon Stick Figure</h1>
-  <canvas id="canvas" width="800" height="500"></canvas>
-  
-  <div class="controls">
-    <button onclick="startWalk()">🚶 Walk</button>
-    <button onclick="stopAnimation()">⏹ Stop</button>
-    <button onclick="wave()">👋 Wave</button>
-    <button onclick="thinking()">🤔 Thinking</button>
-  </div>
+<canvas id="c" width="1280" height="720" aria-label="Animated stickman"></canvas>
+<div class="bar" id="bar" role="group" aria-label="Actions"></div>
+<p>Pick an action, then screen-record the stage (16:9) to use the footage in your videos.</p>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const W=1280,H=720,GROUND=560,CX=640;
+const Lm={th:64,sh:62,to:86,ua:46,fa:48,hr:40};
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),lerp=(a,b,t)=>a+(b-a)*t;
+const sm=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
+const base=()=>({lean:.03,head:0,sL:.12,eL:.3,sR:-.12,eR:.3,hL:.05,kL:.08,hR:-.05,kR:.08,lift:0});
 
-  <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    let x = 180;
-    let y = 320;
-    let frame = 0;
-    let animating = false;
-    let currentPose = 'standing';
-    let emotion = 'happy';
+const ACTIONS={
+ Idle:{speed:0,f(t){const p=base(),b=Math.sin(t*2.4);p.lean=.03+.015*b;p.head=.04*Math.sin(t*1.2);p.sL=.1+.03*b;p.sR=-.1-.03*b;p.kL=.1+.02*b;p.kR=.1+.02*b;return p}},
+ Walk:{speed:238,f(t){const p=base(),ph=t*Math.PI*2,s=Math.sin(ph),c=Math.cos(ph);
+  p.lean=.07;p.hL=.5*s;p.hR=-.5*s;p.kL=.12+Math.max(0,c)*.8;p.kR=.12+Math.max(0,-c)*.8;
+  p.sL=-.5*s;p.sR=.5*s;p.eL=.35+.25*Math.max(0,s);p.eR=.35+.25*Math.max(0,-s);p.head=-.03*c;return p}},
+ Run:{speed:640,f(t){const p=base(),ph=t*Math.PI*2/.62,s=Math.sin(ph),c=Math.cos(ph);
+  p.lean=.3;p.hL=.95*s;p.hR=-.95*s;p.kL=.45+Math.max(0,c)*1.5;p.kR=.45+Math.max(0,-c)*1.5;
+  p.sL=-1*s;p.sR=1*s;p.eL=1.5;p.eR=1.5;p.lift=14*s*s;p.head=-.15;return p}},
+ Jump:{speed:0,f(t){const p=base(),T=1.9,u=(t%T)/T;let c=0,lift=0;
+  if(u<.22)c=sm(u/.22);else if(u<.28)c=1-(u-.22)/.06;else if(u<.78){const s=(u-.28)/.5;lift=170*4*s*(1-s)}
+  else if(u<.86)c=sm((u-.78)/.08);else c=1-sm((u-.86)/.14);
+  const a=clamp(lift/25,0,1);
+  p.lift=lift;p.lean=.45*c-.05*a;p.hL=p.hR=.85*c+.5*a;p.kL=p.kR=1.6*c+.9*a;
+  p.hL+=.15*a;p.sL=lerp(-1*c,2.7,a);p.sR=lerp(-1*c,2.5,a);p.eL=.3;p.eR=.3;p.head=-.1*a;return p}},
+ Wave:{speed:0,f(t){const p=base();p.lean=.02;p.sR=2.65;p.eR=.15+.55*Math.sin(t*9);p.head=.08+.04*Math.sin(t*2);p.sL=.12;return p}},
+ Kick:{speed:0,f(t){const p=base(),T=1.7,u=(t%T)/T,k=Math.pow(Math.sin(clamp(u/.7,0,1)*Math.PI),.8);
+  p.hR=1.55*k;p.kR=1.3*(1-k)+.1;p.lean=-.2*k+.05;p.hL=-.12*k;p.kL=.15+.2*k;
+  p.sL=.6;p.eL=1.8;p.sR=-.7*k;p.eR=1.2;p.head=.05*k;return p}},
+ Dance:{speed:0,f(t){const p=base(),b=Math.sin(t*Math.PI*4),w=Math.sin(t*Math.PI*2);
+  p.lean=.08*w;p.head=.18*w;p.hL=.2+.15*w;p.hR=-.2+.15*w;p.kL=.5+.4*Math.max(0,b);p.kR=.5+.4*Math.max(0,-b);
+  p.sL=2.35+.45*b;p.sR=2.35-.45*b;p.eL=.7;p.eR=.7;p.lift=0;return p}}
+};
 
-    function drawFigure(x, y, pose = 'standing', emotion = 'happy') {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      let armSwing = 0;
-      let legSwing = 0;
-      let bob = 0;
-      
-      if (pose === 'walking') {
-        armSwing = Math.sin(frame * 0.15) * 25;
-        legSwing = Math.sin(frame * 0.15) * 20;
-        bob = Math.abs(Math.sin(frame * 0.15)) * 4;
-      }
-      if (pose === 'waving') {
-        armSwing = Math.sin(frame * 0.18) * 25 - 50;
-      }
-      
-      const drawY = y - bob;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      
-      // === HEAD ===
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(x, drawY - 95, 28, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      
-      // === EYES ===
-      ctx.fillStyle = '#000000';
-      if (emotion === 'happy') {
-        ctx.beginPath();
-        ctx.ellipse(x - 10, drawY - 100, 5, 7, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(x + 10, drawY - 100, 5, 7, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Eye shine
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(x - 8, drawY - 102, 2, 0, Math.PI * 2);
-        ctx.arc(x + 12, drawY - 102, 2, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (emotion === 'surprised') {
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(x - 10, drawY - 100, 8, 0, Math.PI * 2);
-        ctx.arc(x + 10, drawY - 100, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(x - 8, drawY - 102, 3, 0, Math.PI * 2);
-        ctx.arc(x + 12, drawY - 102, 3, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (emotion === 'thinking') {
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.ellipse(x - 10, drawY - 100, 4, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(x + 12, drawY - 102, 4, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      // === MOUTH ===
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      if (emotion === 'happy') {
-        ctx.arc(x, drawY - 82, 8, 0.15 * Math.PI, 0.85 * Math.PI);
-      } else if (emotion === 'surprised') {
-        ctx.arc(x, drawY - 80, 6, 0, Math.PI * 2);
-      } else if (emotion === 'thinking') {
-        ctx.moveTo(x - 4, drawY - 80);
-        ctx.lineTo(x + 5, drawY - 78);
-      }
-      ctx.stroke();
-      
-      // === BODY (oval shape) ===
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.ellipse(x, drawY - 40, 22, 30, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      
-      // === ARMS ===
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = '#ffffff';
-      ctx.fillStyle = '#000000';
-      
-      if (pose === 'waving') {
-        // Left arm
-        ctx.beginPath();
-        ctx.moveTo(x - 18, drawY - 55);
-        ctx.lineTo(x - 30, drawY - 15);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x - 30, drawY - 15, 6, 0, Math.PI * 2);
-        ctx.fill();
-        // Right arm waving
-        ctx.strokeStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(x + 18, drawY - 55);
-        ctx.lineTo(x + 35, drawY - 60 + armSwing);
-        ctx.stroke();
-        // Hand
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x + 35, drawY - 60 + armSwing, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#000';
-        ctx.stroke();
-      } else {
-        // Normal arms
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(x - 18, drawY - 55);
-        ctx.lineTo(x - 35 + armSwing, drawY - 10);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x - 35 + armSwing, drawY - 10, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x + 18, drawY - 55);
-        ctx.lineTo(x + 35 - armSwing, drawY - 10);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x + 35 - armSwing, drawY - 10, 6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      // === LEGS ===
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(x - 10, drawY - 12);
-      ctx.lineTo(x - 18 + legSwing, drawY + 35);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + 10, drawY - 12);
-      ctx.lineTo(x + 18 - legSwing, drawY + 35);
-      ctx.stroke();
-      
-      // === FEET ===
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.ellipse(x - 28 + legSwing, drawY + 40, 14, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(x + 28 - legSwing, drawY + 40, 14, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
+let cur='Idle',prev=base(),last=base(),tb=1,t0=performance.now(),scroll=0,tAct=0,lastT=t0,blinkAt=2;
+const bar=document.getElementById('bar');
+Object.keys(ACTIONS).forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===cur);
+ b.onclick=()=>{if(n===cur)return;prev={...last};cur=n;tb=0;tAct=0;
+  [...bar.children].forEach(x=>x.setAttribute('aria-pressed',x.textContent===n))};bar.appendChild(b)});
 
-    function animate() {
-      if (!animating) return;
-      frame++;
-      if (currentPose === 'walking') {
-        x += 1.5;
-        if (x > 850) x = -50;
-      }
-      drawFigure(x, 320, currentPose, emotion);
-      requestAnimationFrame(animate);
-    }
+function pt(x,y,a,l){return[x+Math.sin(a)*l,y+Math.cos(a)*l]}
+function stroke(pts,w,col){g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.lineJoin='round';g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke()}
 
-    function startWalk() {
-      animating = true;
-      currentPose = 'walking';
-      emotion = 'happy';
-      animate();
-    }
-
-    function stopAnimation() {
-      animating = false;
-      currentPose = 'standing';
-      emotion = 'happy';
-      frame = 0;
-      drawFigure(180, 320, 'standing', 'happy');
-    }
-
-    function wave() {
-      animating = true;
-      currentPose = 'waving';
-      emotion = 'happy';
-      animate();
-      setTimeout(stopAnimation, 2500);
-    }
-
-    function thinking() {
-      animating = true;
-      currentPose = 'standing';
-      emotion = 'thinking';
-      frame = 0;
-      drawFigure(180, 320, 'standing', 'thinking');
-      setTimeout(stopAnimation, 3000);
-    }
-
-    drawFigure(180, 320, 'standing', 'happy');
-  </script>
+function frame(now){
+ const dt=Math.min(.05,(now-lastT)/1000);lastT=now;tAct+=dt;tb=Math.min(1,tb+dt/.3);
+ const A=ACTIONS[cur],tgt=A.f(tAct),e=sm(tb),p={};
+ for(const k in tgt)p[k]=lerp(prev[k],tgt[k],e);last=p;
+ const ink='#1b1b1f',ink2='#6b6b74',paper='#f4f4f1',line='#d9d9d2';
+ scroll+=A.speed*e*dt+prev.speed*0;
+ g.fillStyle=paper;g.fillRect(0,0,W,H);
+ // ground
+ g.strokeStyle=line;g.lineWidth=3;g.beginPath();g.moveTo(0,GROUND);g.lineTo(W,GROUND);g.stroke();
+ g.lineWidth=3;g.strokeStyle=line;const gap=120;
+ for(let x=-((scroll%gap)+gap);x<W+gap;x+=gap){g.beginPath();g.moveTo(x+gap/2,GROUND+26);g.lineTo(x+gap/2+36,GROUND+26);g.stroke()}
+ // skeleton, hip placed so lowest foot touches the ground
+ const f=(h,k)=>Math.cos(h)*Lm.th+Math.cos(h-k)*Lm.sh;
+ const hipY=GROUND-Math.max(f(p.hL,p.kL),f(p.hR,p.kR))-p.lift,hipX=CX;
+ const nk=pt(hipX,hipY,Math.PI+p.lean,Lm.to);const neck=[hipX+Math.sin(p.lean)*Lm.to,hipY-Math.cos(p.lean)*Lm.to];
+ const sh=[hipX+Math.sin(p.lean)*Lm.to*.92,hipY-Math.cos(p.lean)*Lm.to*.92];
+ const leg=(h,k)=>{const kn=pt(hipX,hipY,h,Lm.th),ft=pt(kn[0],kn[1],h-k,Lm.sh);return[[hipX,hipY],kn,ft]};
+ const arm=(s,el)=>{const e1=pt(sh[0],sh[1],s,Lm.ua),h=pt(e1[0],e1[1],s+el,Lm.fa);return[sh,e1,h]};
+ // shadow
+ const sa=clamp(1-p.lift/260,.25,1);g.fillStyle=ink;g.globalAlpha=.1*sa;g.beginPath();g.ellipse(hipX,GROUND+4,70*sa,9*sa,0,0,7);g.fill();g.globalAlpha=1;
+ /*const SK='#0f0f15',SH='#fff6f4',SHf='#e6d8d8',VS='#2a2634',PT='#2b2833',PTf='#1d1b24',OL='#1a1824';
+ const lim=(pts,w,col)=>{stroke(pts,w+4,OL);stroke(pts,w,col)};
+ const legL=leg(p.hL,p.kL),legR=leg(p.hR,p.kR),armL=arm(p.sL,p.eL),armR=arm(p.sR,p.eR);
+ const shoe=ft=>{g.fillStyle=SK;g.beginPath();g.ellipse(ft[0]+9,ft[1]-6,16,7,0,0,7);g.fill()};
+ const glove=h=>{g.fillStyle=SK;g.beginPath();g.arc(h[0],h[1],10,0,7);g.fill()};
+ const ax=Math.sin(p.lean),ay=-Math.cos(p.lean),nx=Math.cos(p.lean),ny=Math.sin(p.lean);
+ const q=(s,o)=>[hipX+ax*Lm.to*s+nx*o,hipY+ay*Lm.to*s+ny*o];
+ const poly=(pts,fill,out)=>{g.beginPath();pts.forEach((z,i)=>i?g.lineTo(z[0],z[1]):g.moveTo(z[0],z[1]));g.closePath();g.fillStyle=fill;g.fill();if(out){g.strokeStyle=out;g.lineWidth=3;g.lineJoin='round';g.stroke()}};
+ lim(legL,19,PTf);lim(legR,19,PT);shoe(legL[2]);shoe(legR[2]);
+ lim(armL,15,SHf);glove(armL[2]);
+ poly([q(0,-15),q(.95,-19),q(.95,19),q(0,15)],SH,OL);
+ poly([q(0,-16),q(.93,-20),q(.93,-9),q(.58,4),q(.93,13),q(.93,19),q(0,16)],VS,OL);
+ poly([q(.9,0),q(.9,6),q(.55,5),q(.5,2)],SK);
+ g.fillStyle='#b9a58f';[.5,.34,.18].forEach(s=>{const b=q(s,9);g.beginPath();g.arc(b[0],b[1],2.6,0,7);g.fill()});
+ lim(armR,15,SH);glove(armR[2]);
+ */
+ const OL='#111',JK='#3b3b40',JN='#2f64b0',CF='#5a8fd6',TE='#8d9096';
+ const lim=(pts,w,col)=>{stroke(pts,w+4,OL);stroke(pts,w,col)};
+ const legL=leg(p.hL,p.kL),legR=leg(p.hR,p.kR),armL=arm(p.sL,p.eL),armR=arm(p.sR,p.eR);
+ const mix=(a,b,s)=>[a[0]+(b[0]-a[0])*s,a[1]+(b[1]-a[1])*s];
+ const legD=(L,col)=>{const ps=mix(L[0],L[1],.72);
+  stroke([L[0],L[1],L[2]],5,OL);lim([L[0],ps],24,col);
+  const x=L[2][0]+8,y=L[2][1]-8;g.fillStyle='#fff';g.strokeStyle=OL;g.lineWidth=3.5;g.beginPath();g.ellipse(x,y,19,8,0,0,7);g.fill();g.stroke();
+  g.fillStyle='#cfd3d9';g.beginPath();g.ellipse(x,y+2.5,18,4.5,0,0,Math.PI);g.fill()};
+ const glove=h=>{g.fillStyle='#fff';g.strokeStyle=OL;g.lineWidth=3.5;g.beginPath();g.ellipse(h[0],h[1]+4,10,13,0,0,7);g.fill();g.stroke()};
+ const armD=A=>{stroke([A[1],A[2]],5,OL);lim([A[0],A[1]],14,JK);glove(A[2])};
+ const ax=Math.sin(p.lean),ay=-Math.cos(p.lean),nx=Math.cos(p.lean),ny=Math.sin(p.lean);
+ const q=(s,o)=>[hipX+ax*Lm.to*s+nx*o,hipY+ay*Lm.to*s+ny*o];
+ const poly=(pts,fill)=>{g.beginPath();pts.forEach((z,i)=>i?g.lineTo(z[0],z[1]):g.moveTo(z[0],z[1]));g.closePath();g.fillStyle=fill;g.fill();g.strokeStyle=OL;g.lineWidth=3.5;g.lineJoin='round';g.stroke()};
+ legD(legL,'#27508f');legD(legR,JN);armD(armL);
+ poly([q(0,-16),q(.95,-18),q(.95,18),q(0,16)],JK);
+ poly([q(.04,-6),q(.95,-7),q(.95,7),q(.04,8)],TE);
+ const hd=q(.97,0);g.fillStyle=JK;g.strokeStyle=OL;g.lineWidth=3.5;g.beginPath();g.ellipse(hd[0],hd[1],24,9,p.lean,0,7);g.fill();g.stroke();
+ armD(armR);
+ // head
+ const ha=p.lean+p.head,hc=[neck[0]+Math.sin(ha)*(Lm.hr-3),neck[1]-Math.cos(ha)*(Lm.hr-3)];
+ g.save();g.translate(hc[0],hc[1]);g.rotate(ha);
+ g.fillStyle='#fff';g.strokeStyle=OL;g.lineWidth=5;g.beginPath();g.arc(0,0,Lm.hr,0,7);g.fill();
+ g.save();g.clip();g.fillStyle='#e6e9ee';g.beginPath();g.arc(0,0,Lm.hr,0,7);g.arc(8,-5,Lm.hr,0,7);g.fill('evenodd');g.restore();
+ g.beginPath();g.arc(0,0,Lm.hr,0,7);g.stroke();
+ /*
+ g.fillStyle='#2f2b3c';g.beginPath();g.ellipse(hc[0]-5,hc[1]-13,17,11,-.45,0,7);g.fill();*/
+ const sec=now/1000;if(sec>blinkAt){if(sec>blinkAt+.12)blinkAt=sec+2+Math.random()*3}
+ const blink=sec>blinkAt&&sec<blinkAt+.12||(blinkAt-sec>5);
+ /*const ex=hc[0]+8,ey=hc[1]+1;g.fillStyle='#fff';g.strokeStyle='#fff';
+ [0,16].forEach(o=>{if(blink){g.lineWidth=3;g.lineCap='round';g.beginPath();g.moveTo(ex+o-5,ey);g.lineTo(ex+o+5,ey);g.stroke()}else{g.beginPath();g.ellipse(ex+o,ey,5.5,7.5,0,0,7);g.fill();g.fillStyle=SK;g.beginPath();g.arc(ex+o+1.8,ey+1,2.6,0,7);g.fill();g.fillStyle='#fff'}});
+ g.lineWidth=3;g.lineCap='round';g.beginPath();
+ if(p.lift>25||cur==='Dance'||cur==='Kick'){g.ellipse(ex+8,hc[1]+15,6,5,0,0,7);g.fill()}else{g.arc(ex+8,hc[1]+9,8,.15*Math.PI,.85*Math.PI);g.stroke()}*/
+ const R=Lm.hr;g.fillStyle=OL;g.strokeStyle=OL;g.lineCap='round';g.lineWidth=3.5;
+ [6,24].forEach(o=>{if(blink){g.beginPath();g.moveTo(o-5,5);g.lineTo(o+5,5);g.stroke()}else{g.beginPath();g.ellipse(o,5,4.2,6,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(o+1.2,3,1.5,0,7);g.fill();g.fillStyle=OL}});
+ g.lineWidth=3;g.beginPath();g.moveTo(0,-6);g.quadraticCurveTo(6,-11,13,-8);g.moveTo(17,-8);g.quadraticCurveTo(24,-11,30,-6);g.stroke();
+ g.beginPath();
+ if(p.lift>25||cur==='Dance'||cur==='Kick'){g.ellipse(14,24,6,5,0,0,7);g.fill()}else{g.arc(14,18,8,.2*Math.PI,.8*Math.PI);g.stroke()}
+ g.lineWidth=3.5;g.beginPath();g.moveTo(-6,-R+1);g.quadraticCurveTo(-11,-R-12,-3,-R-17);g.moveTo(2,-R);g.quadraticCurveTo(0,-R-15,10,-R-19);g.moveTo(10,-R+1);g.quadraticCurveTo(15,-R-10,23,-R-12);g.stroke();
+ /*const by=-17,R2=R+3,xe=Math.sqrt(R2*R2-by*by);
+ g.fillStyle='#d8433b';g.lineWidth=4;g.beginPath();g.moveTo(-xe,by);g.arc(0,0,R2,Math.atan2(by,-xe),Math.atan2(by,xe));g.closePath();g.fill();g.stroke();
+ g.fillStyle='#9e2d28';g.beginPath();g.arc(0,-R2,4,0,7);g.fill();
+ g.fillStyle='#a8302b';g.beginPath();g.moveTo(xe-10,by-6);g.lineTo(xe+32,by+2);g.quadraticCurveTo(xe+38,by+9,xe+28,by+11);g.lineTo(xe-12,by+6);g.closePath();g.fill();g.stroke();*/
+ g.restore();
+ prev.speed=A.speed;
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>

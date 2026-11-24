@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cool Suit Stickman</title>
+  <title>Streetwear Stickman</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -21,39 +21,39 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      background: #2c3e50;
+      background: #222;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       margin: 5px;
+      transition: 0.2s;
     }
-    button:hover { background: #34495e; }
+    button:hover { background: #444; }
   </style>
 </head>
 <body>
-  <h1>😎 Cool Suit Stickman</h1>
-  <canvas id="canvas" width="800" height="500"></canvas>
+  <h1>😎 Streetwear Stickman</h1>
+  <canvas id="canvas" width="800" height="520"></canvas>
   
   <div class="controls">
     <button onclick="startWalk()">🚶 Walk</button>
     <button onclick="stopAnimation()">⏹ Stop</button>
-    <button onclick="wave()">👋 Greeting</button>
-    <button onclick="thumbsUp()">👍 Thumbs Up</button>
+    <button onclick="shaka()">🤙 Shaka</button>
+    <button onclick="handsInPockets()">✋ Pockets</button>
   </div>
 
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     
-    let x = 150;
-    let y = 320;
+    let x = 180;
+    let y = 340;
     let frame = 0;
     let animating = false;
     let currentPose = 'standing';
 
-    // === COOL SUIT STICKMAN ===
-    function drawSuitMan(x, y, pose = 'standing') {
+    function drawStreetMan(x, y, pose = 'standing') {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       let armSwing = 0;
@@ -61,211 +61,242 @@
       let bob = 0;
       
       if (pose === 'walking') {
-        armSwing = Math.sin(frame * 0.15) * 22;
-        legSwing = Math.sin(frame * 0.15) * 16;
-        bob = Math.abs(Math.sin(frame * 0.15)) * 3;
+        armSwing = Math.sin(frame * 0.18) * 30;
+        legSwing = Math.sin(frame * 0.18) * 25;
+        bob = Math.abs(Math.sin(frame * 0.18)) * 5;
       }
-      if (pose === 'waving') {
-        armSwing = Math.sin(frame * 0.18) * 25 - 45;
+      if (pose === 'shaka') {
+        armSwing = Math.sin(frame * 0.15) * 8;
       }
       
       const drawY = y - bob;
       
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#111';
       
-      // === HAIR ===
-      ctx.fillStyle = '#1a1a1a';
-      ctx.beginPath();
-      ctx.moveTo(x - 28, drawY - 105);
-      ctx.lineTo(x - 18, drawY - 125);
-      ctx.lineTo(x - 5, drawY - 110);
-      ctx.lineTo(x + 5, drawY - 130);
-      ctx.lineTo(x + 15, drawY - 112);
-      ctx.lineTo(x + 25, drawY - 122);
-      ctx.lineTo(x + 30, drawY - 100);
-      ctx.closePath();
-      ctx.fill();
+      // === BASE SKIN TONE ===
+      ctx.fillStyle = '#fff';
       
       // === HEAD ===
-      ctx.fillStyle = '#f5f5f5';
       ctx.beginPath();
-      ctx.ellipse(x, drawY - 90, 22, 26, 0, 0, Math.PI * 2);
+      ctx.arc(x, drawY - 110, 26, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // === CAP ===
+      ctx.fillStyle = '#222';
+      // Cap top
+      ctx.beginPath();
+      ctx.ellipse(x, drawY - 128, 24, 14, 0, Math.PI, Math.PI * 2);
+      ctx.fill();
+      // Cap brim
+      ctx.beginPath();
+      ctx.ellipse(x + 12, drawY - 118, 26, 8, 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      // Back detail
+      ctx.fillRect(x - 18, drawY - 130, 14, 6);
+      // Hair tuft
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x - 20, drawY - 122);
+      ctx.lineTo(x - 32, drawY - 135);
       ctx.stroke();
       
       // === SUNGLASSES ===
       ctx.fillStyle = '#111';
-      ctx.fillRect(x - 20, drawY - 98, 16, 8);
-      ctx.fillRect(x + 4, drawY - 98, 16, 8);
-      ctx.strokeStyle = '#444';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(x - 4, drawY - 94);
-      ctx.lineTo(x + 4, drawY - 94);
-      ctx.stroke();
-      
-      // === MIC ===
+      ctx.fillRect(x - 20, drawY - 118, 40, 10);
       ctx.fillStyle = '#333';
-      ctx.fillRect(x + 22, drawY - 82, 10, 3);
+      ctx.fillRect(x - 17, drawY - 116, 14, 6);
+      ctx.fillRect(x + 3, drawY - 116, 14, 6);
+      // Shine
+      ctx.fillStyle = '#555';
+      ctx.fillRect(x - 14, drawY - 114, 6, 2);
+      ctx.fillRect(x + 6, drawY - 114, 6, 2);
+      
+      // === SMIRK ===
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.arc(x + 35, drawY - 80, 3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(x + 6, drawY - 95, 10, 0.2 * Math.PI, 0.8 * Math.PI);
+      ctx.stroke();
       
       // === NECK ===
-      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, drawY - 84);
+      ctx.lineTo(x, drawY - 72);
+      ctx.stroke();
+      
+      // === HOODIE BODY ===
+      ctx.fillStyle = '#f0f0f0';
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 3;
+      // Hood
+      ctx.beginPath();
+      ctx.moveTo(x - 26, drawY - 72);
+      ctx.quadraticCurveTo(x, drawY - 92, x + 26, drawY - 72);
+      ctx.stroke();
+      // Hoodie main
+      ctx.fillStyle = '#e8e8e8';
+      ctx.beginPath();
+      ctx.moveTo(x - 28, drawY - 72);
+      ctx.lineTo(x - 34, drawY - 20);
+      ctx.lineTo(x + 34, drawY - 20);
+      ctx.lineTo(x + 28, drawY - 72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Drawstrings
+      ctx.strokeStyle = '#bbb';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(x - 6, drawY - 64);
-      ctx.lineTo(x - 6, drawY - 55);
-      ctx.moveTo(x + 6, drawY - 64);
-      ctx.lineTo(x + 6, drawY - 55);
+      ctx.moveTo(x - 8, drawY - 70);
+      ctx.lineTo(x - 10, drawY - 48);
+      ctx.moveTo(x + 8, drawY - 70);
+      ctx.lineTo(x + 10, drawY - 48);
       ctx.stroke();
-      
-      // === SHIRT & TIE ===
-      ctx.fillStyle = '#f8f8f8';
-      ctx.beginPath();
-      ctx.moveTo(x - 25, drawY - 55);
-      ctx.lineTo(x - 20, drawY - 10);
-      ctx.lineTo(x + 20, drawY - 10);
-      ctx.lineTo(x + 25, drawY - 55);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      
-      // Tie knot
-      ctx.fillStyle = '#555';
-      ctx.beginPath();
-      ctx.moveTo(x - 6, drawY - 55);
-      ctx.lineTo(x, drawY - 45);
-      ctx.lineTo(x + 6, drawY - 55);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Tie body
-      ctx.beginPath();
-      ctx.moveTo(x, drawY - 50);
-      ctx.lineTo(x - 7, drawY - 12);
-      ctx.lineTo(x + 7, drawY - 12);
-      ctx.closePath();
-      ctx.fill();
-      
-      // === BLAZER/JACKET ===
-      ctx.fillStyle = '#2c2c2c';
-      // Left side
-      ctx.beginPath();
-      ctx.moveTo(x - 30, drawY - 55);
-      ctx.lineTo(x - 40, drawY - 50);
-      ctx.lineTo(x - 35, drawY + 30);
-      ctx.lineTo(x - 22, drawY + 25);
-      ctx.lineTo(x - 25, drawY - 10);
-      ctx.closePath();
-      ctx.fill();
-      // Right side
-      ctx.beginPath();
-      ctx.moveTo(x + 30, drawY - 55);
-      ctx.lineTo(x + 40, drawY - 50);
-      ctx.lineTo(x + 35, drawY + 30);
-      ctx.lineTo(x + 22, drawY + 25);
-      ctx.lineTo(x + 25, drawY - 10);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Lapels
-      ctx.fillStyle = '#3a3a3a';
-      ctx.beginPath();
-      ctx.moveTo(x - 22, drawY - 55);
-      ctx.lineTo(x - 12, drawY - 35);
-      ctx.lineTo(x - 5, drawY - 55);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + 22, drawY - 55);
-      ctx.lineTo(x + 12, drawY - 35);
-      ctx.lineTo(x + 5, drawY - 55);
-      ctx.closePath();
-      ctx.fill();
-      
-      // === BELT ===
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(x - 22, drawY + 25, 44, 6);
-      ctx.fillStyle = '#444';
-      ctx.fillRect(x - 5, drawY + 24, 10, 8);
-      
-      // === PANTS ===
-      ctx.fillStyle = '#333';
-      ctx.fillRect(x - 20, drawY + 31, 17, 55);
-      ctx.fillRect(x + 3, drawY + 31, 17, 55);
       
       // === ARMS & HANDS ===
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 5;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = '#2c2c2c';
+      ctx.strokeStyle = '#222';
       
-      if (pose === 'waving') {
+      if (pose === 'shaka') {
         // Left arm relaxed
         ctx.beginPath();
-        ctx.moveTo(x - 30, drawY - 30);
-        ctx.lineTo(x - 42, drawY + 5);
+        ctx.moveTo(x - 32, drawY - 55);
+        ctx.lineTo(x - 42, drawY - 10);
         ctx.stroke();
-        // Right arm waving
+        // Right arm up — shaka sign
         ctx.beginPath();
-        ctx.moveTo(x + 30, drawY - 30);
-        ctx.lineTo(x + 45, drawY - 55 + armSwing);
+        ctx.moveTo(x + 32, drawY - 55);
+        ctx.lineTo(x + 48, drawY - 65 + armSwing);
         ctx.stroke();
-      } else if (pose === 'thumbsUp') {
-        // Left arm relaxed
+        // Shaka hand
+        ctx.fillStyle = '#fff';
         ctx.beginPath();
-        ctx.moveTo(x - 30, drawY - 30);
-        ctx.lineTo(x - 42, drawY + 5);
+        ctx.arc(x + 52, drawY - 68 + armSwing, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 2.5;
         ctx.stroke();
-        // Right arm up
+        // Thumb out
         ctx.beginPath();
-        ctx.moveTo(x + 30, drawY - 30);
-        ctx.lineTo(x + 42, drawY - 25);
+        ctx.moveTo(x + 56, drawY - 72 + armSwing);
+        ctx.lineTo(x + 66, drawY - 80 + armSwing);
         ctx.stroke();
+        // Pinky out
+        ctx.beginPath();
+        ctx.moveTo(x + 56, drawY - 64 + armSwing);
+        ctx.lineTo(x + 66, drawY - 56 + armSwing);
+        ctx.stroke();
+        
+      } else if (pose === 'handsInPockets') {
+        // Both arms down into pockets
+        ctx.beginPath();
+        ctx.moveTo(x - 32, drawY - 55);
+        ctx.lineTo(x - 30, drawY - 5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + 32, drawY - 55);
+        ctx.lineTo(x + 30, drawY - 5);
+        ctx.stroke();
+        
       } else {
-        // Normal arms
+        // Walking / standing arms
         ctx.beginPath();
-        ctx.moveTo(x - 30, drawY - 30);
-        ctx.lineTo(x - 42 + armSwing, drawY + 5);
+        ctx.moveTo(x - 32, drawY - 55);
+        ctx.lineTo(x - 42 + armSwing, drawY - 10);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(x + 30, drawY - 30);
-        ctx.lineTo(x + 42 - armSwing, drawY + 5);
+        ctx.moveTo(x + 32, drawY - 55);
+        ctx.lineTo(x + 42 - armSwing, drawY - 10);
         ctx.stroke();
       }
       
-      // === LEGS ===
-      ctx.lineWidth = 5;
+      // === PANTS ===
+      ctx.fillStyle = '#2a2a2a';
+      ctx.strokeStyle = '#111';
+      ctx.lineWidth = 2.5;
+      // Left leg
       ctx.beginPath();
-      ctx.moveTo(x - 12, drawY + 31);
-      ctx.lineTo(x - 15 + legSwing, drawY + 85);
+      ctx.moveTo(x - 26, drawY - 20);
+      ctx.lineTo(x - 30, drawY + 65);
+      ctx.lineTo(x - 10, drawY + 65);
+      ctx.lineTo(x - 12, drawY - 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Cargo pocket
+      ctx.fillStyle = '#383838';
+      ctx.fillRect(x - 28, drawY + 5, 12, 18);
+      ctx.strokeRect(x - 28, drawY + 5, 12, 18);
+      // Right leg
+      ctx.fillStyle = '#2a2a2a';
+      ctx.beginPath();
+      ctx.moveTo(x + 26, drawY - 20);
+      ctx.lineTo(x + 30, drawY + 65);
+      ctx.lineTo(x + 10, drawY + 65);
+      ctx.lineTo(x + 12, drawY - 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Cargo pocket
+      ctx.fillStyle = '#383838';
+      ctx.fillRect(x + 16, drawY + 5, 12, 18);
+      ctx.strokeRect(x + 16, drawY + 5, 12, 18);
+      
+      // === LEGS (connecting to shoes) ===
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#222';
+      ctx.lineCap = 'butt';
+      ctx.beginPath();
+      ctx.moveTo(x - 12, drawY + 65);
+      ctx.lineTo(x - 15 + legSwing, drawY + 90);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(x + 12, drawY + 31);
-      ctx.lineTo(x + 15 - legSwing, drawY + 85);
+      ctx.moveTo(x + 12, drawY + 65);
+      ctx.lineTo(x + 15 - legSwing, drawY + 90);
       ctx.stroke();
       
-      // === SHOES ===
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(x - 22 + legSwing, drawY + 82, 22, 8);
-      ctx.fillRect(x + 0 - legSwing, drawY + 82, 22, 8);
+      // === SNEAKERS ===
+      ctx.fillStyle = '#111';
+      // Left shoe
+      ctx.beginPath();
+      ctx.roundRect(x - 32 + legSwing, drawY + 85, 38, 14, 4);
+      ctx.fill();
+      // Sole
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x - 30 + legSwing, drawY + 94, 34, 4);
+      // Stripe
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x - 22 + legSwing, drawY + 88, 12, 6);
+      
+      // Right shoe
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.roundRect(x + 6 - legSwing, drawY + 85, 38, 14, 4);
+      ctx.fill();
+      // Sole
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 8 - legSwing, drawY + 94, 34, 4);
+      // Stripe
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 18 - legSwing, drawY + 88, 12, 6);
     }
 
     function animate() {
       if (!animating) return;
       frame++;
       if (currentPose === 'walking') {
-        x += 1.2;
-        if (x > 850) x = -50;
+        x += 1.5;
+        if (x > 880) x = -80;
       }
-      drawSuitMan(x, 320, currentPose);
+      drawStreetMan(x, 340, currentPose);
       requestAnimationFrame(animate);
     }
 
@@ -279,24 +310,24 @@
       animating = false;
       currentPose = 'standing';
       frame = 0;
-      drawSuitMan(150, 320, 'standing');
+      drawStreetMan(180, 340, 'standing');
     }
 
-    function wave() {
+    function shaka() {
       animating = true;
-      currentPose = 'waving';
+      currentPose = 'shaka';
       animate();
       setTimeout(stopAnimation, 2500);
     }
 
-    function thumbsUp() {
+    function handsInPockets() {
       animating = true;
-      currentPose = 'thumbsUp';
+      currentPose = 'handsInPockets';
       animate();
       setTimeout(stopAnimation, 2000);
     }
 
-    drawSuitMan(150, 320, 'standing');
+    drawStreetMan(180, 340, 'standing');
   </script>
 </body>
 </html>

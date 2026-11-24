@@ -1,1 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Style 3 Stickman Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #f0f4f8; 
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #333; margin-bottom: 10px; }
+    canvas { 
+      background: white; 
+      border: 3px solid #333; 
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .controls { margin-top: 20px; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { background: #45a049; }
+  </style>
+</head>
+<body>
+  <h1>✨ My Style 3 Stickman ✨</h1>
+  <canvas id="canvas" width="800" height="450"></canvas>
+  
+  <div class="controls">
+    <button onclick="startWalk()">🚶 Walk Animation</button>
+    <button onclick="stopAnimation()">⏹ Stop</button>
+    <button onclick="wave()">👋 Wave</button>
+  </div>
 
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let x = 100;
+    let y = 300;
+    let frame = 0;
+    let animating = false;
+    let currentPose = 'standing';
+
+    function drawStickman(x, y, pose = 'standing', emotion = 'happy') {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      let armSwing = 0;
+      let legSwing = 0;
+      let bob = 0;
+      
+      if (pose === 'walking') {
+        armSwing = Math.sin(frame * 0.15) * 25;
+        legSwing = Math.sin(frame * 0.15) * 18;
+        bob = Math.abs(Math.sin(frame * 0.15)) * 4;
+      }
+      if (pose === 'waving') {
+        armSwing = Math.sin(frame * 0.2) * 30 - 40;
+      }
+      
+      const drawY = y - bob;
+      
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#222222';
+      
+      ctx.beginPath();
+      ctx.arc(x, drawY - 75, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFE4C4';
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.fillStyle = '#222222';
+      if (emotion === 'happy') {
+        ctx.beginPath();
+        ctx.arc(x - 8, drawY - 80, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + 8, drawY - 80, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (emotion === 'surprised') {
+        ctx.beginPath();
+        ctx.arc(x - 8, drawY - 80, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + 8, drawY - 80, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (emotion === 'thinking') {
+        ctx.beginPath();
+        ctx.arc(x - 8, drawY - 80, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + 10, drawY - 82, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.beginPath();
+      if (emotion === 'happy') {
+        ctx.arc(x, drawY - 68, 7, 0.1 * Math.PI, 0.9 * Math.PI);
+      } else if (emotion === 'surprised') {
+        ctx.arc(x, drawY - 65, 5, 0, Math.PI * 2);
+      } else if (emotion === 'thinking') {
+        ctx.moveTo(x - 5, drawY - 65);
+        ctx.lineTo(x + 5, drawY - 63);
+      }
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(x, drawY - 53);
+      ctx.lineTo(x, drawY - 20);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      if (pose === 'waving') {
+        ctx.moveTo(x, drawY - 45);
+        ctx.lineTo(x - 18, drawY - 38);
+        ctx.moveTo(x, drawY - 45);
+        ctx.lineTo(x + 25, drawY - 50 + armSwing);
+      } else {
+        ctx.moveTo(x, drawY - 45);
+        ctx.lineTo(x - 22, drawY - 35 + armSwing);
+        ctx.moveTo(x, drawY - 45);
+        ctx.lineTo(x + 22, drawY - 35 - armSwing);
+      }
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(x, drawY - 20);
+      ctx.lineTo(x - 18 + legSwing, drawY + 15);
+      ctx.moveTo(x, drawY - 20);
+      ctx.lineTo(x + 18 - legSwing, drawY + 15);
+      ctx.stroke();
+    }
+
+    function animate() {
+      if (!animating) return;
+      frame++;
+      if (currentPose === 'walking') {
+        x += 1.5;
+        if (x > 850) x = -50;
+      }
+      drawStickman(x, 300, currentPose);
+      requestAnimationFrame(animate);
+    }
+
+    function startWalk() {
+      animating = true;
+      currentPose = 'walking';
+      animate();
+    }
+
+    function stopAnimation() {
+      animating = false;
+      currentPose = 'standing';
+      frame = 0;
+      drawStickman(100, 300, 'standing');
+    }
+
+    function wave() {
+      animating = true;
+      currentPose = 'waving';
+      animate();
+      setTimeout(() => {
+        stopAnimation();
+      }, 2000);
+    }
+
+    drawStickman(100, 300, 'standing');
+  </script>
+</body>
+</html>
